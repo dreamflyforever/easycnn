@@ -20,7 +20,7 @@ To run inference on a single image, use:
 easycnn -i picture
 
 ### flow chart
-
+```mermaid
 graph TD;
     A[训练] --> B[读取文件夹图片];
     B --> C[数据增强];
@@ -37,7 +37,7 @@ graph TD;
     M --> N[判断是否收敛];
     N --> |未收敛| L;
     N --> |收敛| O[sigmoid或softmax输出];
-
+```
 
 ### License
 
