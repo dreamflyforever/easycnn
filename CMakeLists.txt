@@ -8,6 +8,6 @@ find_package(OpenCV)
  
 include_directories(${OpenCV_INCLUDE_DIRS})
 set(CMAKE_CXX_STANDARD 11)
- 
-add_executable(easycnn core.cc)
+include_directories(${CMAKE_SOURCE_DIR}) 
+add_executable(easycnn core.cc ylog.cc)
 target_link_libraries(easycnn ${OpenCV_LIBS})
