@@ -114,9 +114,9 @@ public:
         return output;
     }
 
-private:
     int inputSize, outputSize;
     std::vector<std::vector<float>> weights;
+private:
 
     void initializeWeights() {
         weights.resize(outputSize, std::vector<float>(inputSize));
@@ -158,7 +158,6 @@ int main()
 	ylog("compile time : %s\n", __TIME__);
 
 	initializeRandomSeed();
-	ylog("");
 	// 模拟 1 通道的 8x8 输入图像
 	Tensor input = {{{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
 		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
@@ -189,4 +188,76 @@ int main()
 
 	ylog_deinit();
 	return 0;
+}
+
+float meanSquaredError(const std::vector<float>& predicted, const std::vector<float>& target) {
+    float sum = 0.0f;
+    for (size_t i = 0; i < predicted.size(); ++i) {
+        float diff = predicted[i] - target[i];
+        sum += diff * diff;
+    }
+    return sum / predicted.size();
+}
+
+class NeuralNetwork {
+public:
+    NeuralNetwork()
+        : convLayer(1, 4, 3), poolLayer(2), fullyConnectedLayer(4 * 13 * 13, 10) {} // 初始化网络层
+
+    std::vector<float> forward(const Tensor& input) {
+        auto convOutput = convLayer.forward(input);       // 卷积层
+        auto pooledOutput = poolLayer.forward(convOutput); // 池化层
+        auto flattened = flatten(pooledOutput);            // 展平
+        return fullyConnectedLayer.forward(flattened);     // 全连接层
+    }
+
+    void train(const std::vector<Tensor>& inputs, const std::vector<std::vector<float>>& labels, 
+               int epochs, float learningRate) {
+        for (int epoch = 0; epoch < epochs; ++epoch) {
+            float totalLoss = 0.0f;
+            for (size_t i = 0; i < inputs.size(); ++i) {
+                // 前向传播
+                auto output = forward(inputs[i]);
+
+                // 计算损失
+                float loss = meanSquaredError(output, labels[i]);
+                totalLoss += loss;
+
+                // 反向传播并更新权重（假设仅更新全连接层）
+                for (size_t j = 0; j < output.size(); ++j) {
+                    float error = output[j] - labels[i][j];
+                    for (size_t k = 0; k < fullyConnectedLayer.inputSize; ++k) {
+                        fullyConnectedLayer.weights[j][k] -= learningRate * error;
+                    }
+                }
+            }
+            std::cout << "Epoch " << epoch + 1 << "/" << epochs << ", Loss: " << totalLoss / inputs.size() << std::endl;
+        }
+    }
+
+private:
+    ConvLayer convLayer;
+    PoolLayer poolLayer;
+    FullyConnectedLayer fullyConnectedLayer;
+};
+
+int train_iter() {
+    // 初始化随机种子
+    initializeRandomSeed();
+
+    // 创建神经网络
+    NeuralNetwork network;
+
+    // 假设 inputs 和 labels 已准备好
+    std::vector<Tensor> inputs;  // 训练输入数据
+    std::vector<std::vector<float>> labels; // 训练标签，使用 one-hot 编码
+
+    // 设置训练参数
+    int epochs = 10;
+    float learningRate = 0.01f;
+
+    // 开始训练
+    network.train(inputs, labels, epochs, learningRate);
+
+    return 0;
 }
