@@ -150,46 +150,6 @@ void disk_full(void * arg)
 	ylog("no space\n");
 }
 
-/*测试网络结构*/
-int main()
-{
-	ylog_init();
-	register_cb(disk_full);
-	ylog("compile time : %s\n", __TIME__);
-
-	initializeRandomSeed();
-	// 模拟 1 通道的 8x8 输入图像
-	Tensor input = {{{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}}};
-
-	// 构建网络
-	ConvLayer conv1(1, 2, 3);  // 1 输入通道，2 输出通道，3x3 卷积
-	PoolLayer pool1(2);        // 2x2 池化
-	FullyConnectedLayer fc1(8, 2);  // 全连接层，将展平后的向量映射到 2 类输出
-
-	// 前向传播
-	Tensor convOutput = conv1.forward(input);
-	Tensor poolOutput = pool1.forward(convOutput);
-	std::vector<float> flattened = flatten(poolOutput);
-	std::vector<float> output = fc1.forward(flattened);
-
-	// 输出结果
-	std::cout << "网络输出: ";
-	for (float val : output) {
-		std::cout << val << " ";
-	}
-	std::cout << std::endl;
-
-	ylog_deinit();
-	return 0;
-}
-
 float meanSquaredError(const std::vector<float>& predicted, const std::vector<float>& target) {
     float sum = 0.0f;
     for (size_t i = 0; i < predicted.size(); ++i) {
@@ -241,7 +201,8 @@ private:
     FullyConnectedLayer fullyConnectedLayer;
 };
 
-int train_iter() {
+int train_iter()
+{
     // 初始化随机种子
     initializeRandomSeed();
 
@@ -260,4 +221,44 @@ int train_iter() {
     network.train(inputs, labels, epochs, learningRate);
 
     return 0;
+}
+
+/*测试网络结构*/
+int main()
+{
+	ylog_init();
+	register_cb(disk_full);
+	ylog("compile time : %s\n", __TIME__);
+
+	initializeRandomSeed();
+	// 模拟 1 通道的 8x8 输入图像
+	Tensor input = {{{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}}};
+
+	// 构建网络
+	ConvLayer conv1(1, 2, 3);  // 1 输入通道，2 输出通道，3x3 卷积
+	PoolLayer pool1(2);        // 2x2 池化
+	FullyConnectedLayer fc1(8, 2);  // 全连接层，将展平后的向量映射到 2 类输出
+
+	// 前向传播
+	Tensor convOutput = conv1.forward(input);
+	Tensor poolOutput = pool1.forward(convOutput);
+	std::vector<float> flattened = flatten(poolOutput);
+	std::vector<float> output = fc1.forward(flattened);
+
+	// 输出结果
+	std::cout << "网络输出: ";
+	for (float val : output) {
+		std::cout << val << " ";
+	}
+	std::cout << std::endl;
+
+	ylog_deinit();
+	return 0;
 }
