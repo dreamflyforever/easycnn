@@ -162,7 +162,7 @@ float meanSquaredError(const std::vector<float>& predicted, const std::vector<fl
 class NeuralNetwork {
 public:
     NeuralNetwork()
-        : convLayer(1, 4, 3), poolLayer(2), fullyConnectedLayer(4 * 13 * 13, 10) {} // 初始化网络层
+        : convLayer(3, 16, 3), poolLayer(2), fullyConnectedLayer(16 * 159 * 159, 10) {} // 初始化网络层，调整输出通道数和全连接层输入大小
 
     std::vector<float> forward(const Tensor& input) {
         auto convOutput = convLayer.forward(input);       // 卷积层
@@ -231,20 +231,22 @@ int main()
 	ylog("compile time : %s\n", __TIME__);
 
 	initializeRandomSeed();
-	// 模拟 1 通道的 8x8 输入图像
-	Tensor input = {{{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
-		{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}}};
+	// 模拟 3 通道的 640x640 输入图像
+	Tensor input(3, Matrix(640, std::vector<float>(640, 0.0f)));
+	
+	// 初始化输入数据（这里使用随机值作为示例）
+	for (int c = 0; c < 3; ++c) {
+		for (int i = 0; i < 640; ++i) {
+			for (int j = 0; j < 640; ++j) {
+				input[c][i][j] = randomFloat();
+			}
+		}
+	}
 
 	// 构建网络
-	ConvLayer conv1(1, 2, 3);  // 1 输入通道，2 输出通道，3x3 卷积
-	PoolLayer pool1(2);        // 2x2 池化
-	FullyConnectedLayer fc1(8, 2);  // 全连接层，将展平后的向量映射到 2 类输出
+	ConvLayer conv1(3, 16, 3);  // 3 输入通道，16 输出通道，3x3 卷积
+	PoolLayer pool1(2);         // 2x2 池化
+	FullyConnectedLayer fc1(16 * 159 * 159, 2);  // 全连接层，将展平后的向量映射到 2 类输出
 
 	// 前向传播
 	Tensor convOutput = conv1.forward(input);
